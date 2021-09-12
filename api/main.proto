@@ -1,0 +1,23 @@
+syntax = 'proto3';
+
+package proto;
+
+message MoveRequest {
+    int32 XInitPos = 1;
+    int32 YInitPos = 2;
+    int32 XFinalPos = 3;
+    int32 YFinalPos = 4;
+}
+
+
+message MoveAnswer {
+    int32 XInitPos = 1;
+    int32 YInitPos = 2;
+    int32 XFinalPos = 3;
+    int32 YFinalPos = 4;
+}
+
+
+service sendMoveRequest {
+rpc Move(MoveRequest) returns (MoveAnswer) {}
+}
