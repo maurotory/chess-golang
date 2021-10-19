@@ -2,22 +2,36 @@ syntax = 'proto3';
 
 package proto;
 
+option go_package = "api/proto";
+
 message MoveRequest {
     int32 XInitPos = 1;
     int32 YInitPos = 2;
     int32 XFinalPos = 3;
     int32 YFinalPos = 4;
+    string id = 5;
 }
-
 
 message MoveAnswer {
     int32 XInitPos = 1;
     int32 YInitPos = 2;
     int32 XFinalPos = 3;
     int32 YFinalPos = 4;
+    bool WhiteTurn = 5;
 }
 
+message ConnectRequest {
+    string id = 1;
+    string name = 2;
+    string password = 3;
+}
+
+message ConnectResponse {
+    string token = 1;
+    string colour = 2;
+}
 
 service sendMoveRequest {
-rpc Move(MoveRequest) returns (MoveAnswer) {}
+    rpc Move(stream MoveRequest) returns (stream MoveAnswer) {}
+    rpc Connect (ConnectRequest) returns (ConnectResponse) {}
 }
