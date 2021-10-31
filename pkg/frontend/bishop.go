@@ -13,8 +13,14 @@ type Bishop struct {
 	isWhite bool
 }
 
-func (b *Bishop) coordinates() (int32, int32) {
-	return (3 + b.p.X*22) * 3, (3 + b.p.Y*22) * 3
+func (b *Bishop) coordinates(playerWhite bool) (int32, int32) {
+	pos := backend.Position{b.p.X, b.p.Y}
+	if playerWhite {
+		return (3 + b.p.X*22) * 3, (3 + b.p.Y*22) * 3
+	} else {
+		pos = *pos.Simmetry()
+		return (3 + pos.X*22) * 3, (3 + pos.Y*22) * 3
+	}
 }
 
 func (b *Bishop) getPosition() backend.Position {
@@ -50,9 +56,8 @@ func (b *Bishop) move(pos backend.Position) {
 	b.p = pos
 }
 
-func (b *Bishop) draw(r *sdl.Renderer) error {
-
-	x, y := b.coordinates()
+func (b *Bishop) draw(r *sdl.Renderer, playerWhite bool) error {
+	x, y := b.coordinates(playerWhite)
 
 	rect := &sdl.Rect{X: x, Y: y, W: 20 * 3, H: 20 * 3}
 

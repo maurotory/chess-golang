@@ -60,8 +60,6 @@ func InitBoard() (*Board, error) {
 
 func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, error) {
 	done := make(chan int)
-	fmt.Printf("You are white player?: %t\n", board.PlayerWhite)
-	fmt.Printf("It is white turn?: %t\n", board.whiteTurn)
 	go func() {
 		fmt.Println("Listening to events...")
 		go func() {
@@ -76,9 +74,8 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 
 				initPos := backend.Position{X: resp.XInitPos, Y: resp.YInitPos}
 				finalPos := backend.Position{X: resp.XFinalPos, Y: resp.YFinalPos}
+				fmt.Println(resp.WhiteTurn)
 				board.whiteTurn = resp.WhiteTurn
-				fmt.Printf("You are white player?: %t\n", board.PlayerWhite)
-				fmt.Printf("It is white turn?: %t\n", board.whiteTurn)
 				for _, piece := range board.pieces {
 					if piece.getPosition() == initPos {
 						piece.move(finalPos)
@@ -101,24 +98,24 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 func (board *Board) handleEvents(e sdl.Event, done chan int, stream pb.SendMoveRequest_MoveClient) error {
 	switch e := e.(type) {
 	case *sdl.QuitEvent:
-		fmt.Printf("event: %v", e)
 		done <- 0
 	case *sdl.MouseButtonEvent:
 		if e.Type == 1025 && board.whiteTurn == board.PlayerWhite {
-			fmt.Printf("Button pressed is: %b\n", e.Type)
-
 			pos := backend.GetCell(e.X, e.Y)
+			if !board.PlayerWhite {
+				pos = *pos.Simmetry()
+			}
 
 			if board.selectedPiece == nil {
 				for _, piece := range board.pieces {
-					fmt.Println("Is piece white? %t\n", piece.isColourWhite())
 					if piece.getPosition() == pos && board.PlayerWhite == piece.isColourWhite() {
 						fmt.Printf("The piece selected is: %v\n", piece)
 						board.selectedPiece = piece
 					}
 				}
 			} else {
-				if board.selectedPiece.canMove(pos) {
+				if canMove(board.pieces, board.selectedPiece, pos) {
+					// if board.selectedPiece.canMove(pos) {
 					for _, piece := range board.pieces {
 						if piece == board.selectedPiece {
 							//piece.move(pos)
@@ -159,6 +156,5 @@ func (board *Board) FinishBoard() error {
 			return fmt.Errorf("could not destroy the piece: %v", err)
 		}
 	}
-
 	return nil
 }

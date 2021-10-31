@@ -38,7 +38,6 @@ type server struct {
 }
 
 func (s *server) Connect(ctx context.Context, msg *pb.ConnectRequest) (*pb.ConnectResponse, error) {
-	fmt.Println(len(s.Games))
 	if len(s.Games) == 0 {
 		id, err := uuid.Parse(msg.Id)
 		if err != nil {
@@ -87,7 +86,6 @@ func (s *server) ListenEvents(srv pb.SendMoveRequest_MoveServer, id uuid.UUID) e
 	for {
 		select {
 		case move := <-ch:
-			fmt.Println("received from the channel")
 			resp := pb.MoveAnswer{
 				XInitPos:  int32(move.InitialX),
 				YInitPos:  int32(move.InitialY),
@@ -109,7 +107,6 @@ func (s *server) ListenEvents(srv pb.SendMoveRequest_MoveServer, id uuid.UUID) e
 func (s *server) Move(srv pb.SendMoveRequest_MoveServer) error {
 	// ctx := srv.Context()
 	fmt.Println("stream openned in the server")
-	var id string
 	var started bool
 	for {
 		req, err := srv.Recv()
@@ -135,8 +132,6 @@ func (s *server) Move(srv pb.SendMoveRequest_MoveServer) error {
 			if err != nil {
 				return err
 			}
-			id = uid.String()
-			fmt.Printf("Id initialized: %s\n", id)
 			go s.ListenEvents(srv, uid)
 
 			started = true

@@ -13,8 +13,14 @@ type King struct {
 	isWhite bool
 }
 
-func (k *King) coordinates() (int32, int32) {
-	return (3 + k.p.X*22) * 3, (3 + k.p.Y*22) * 3
+func (k *King) coordinates(playerWhite bool) (int32, int32) {
+	pos := backend.Position{k.p.X, k.p.Y}
+	if playerWhite {
+		return (3 + k.p.X*22) * 3, (3 + k.p.Y*22) * 3
+	} else {
+		pos = *pos.Simmetry()
+		return (3 + pos.X*22) * 3, (3 + pos.Y*22) * 3
+	}
 }
 
 func (k *King) getPosition() backend.Position {
@@ -65,9 +71,8 @@ func (k *King) move(pos backend.Position) {
 	k.p = pos
 }
 
-func (k *King) draw(r *sdl.Renderer) error {
-	x, y := k.coordinates()
-
+func (k *King) draw(r *sdl.Renderer, playerWhite bool) error {
+	x, y := k.coordinates(playerWhite)
 	rect := &sdl.Rect{X: x, Y: y, W: 20 * 3, H: 20 * 3}
 
 	if err := r.Copy(k.t, nil, rect); err != nil {

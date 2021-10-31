@@ -13,8 +13,14 @@ type Rook struct {
 	isWhite bool
 }
 
-func (b *Rook) coordinates() (int32, int32) {
-	return (3 + b.p.X*22) * 3, (3 + b.p.Y*22) * 3
+func (r *Rook) coordinates(playerWhite bool) (int32, int32) {
+	pos := backend.Position{r.p.X, r.p.Y}
+	if playerWhite {
+		return (3 + r.p.X*22) * 3, (3 + r.p.Y*22) * 3
+	} else {
+		pos = *pos.Simmetry()
+		return (3 + pos.X*22) * 3, (3 + pos.Y*22) * 3
+	}
 }
 
 func (b *Rook) getPosition() backend.Position {
@@ -47,8 +53,8 @@ func (b *Rook) move(pos backend.Position) {
 	b.p = pos
 }
 
-func (b *Rook) draw(r *sdl.Renderer) error {
-	x, y := b.coordinates()
+func (b *Rook) draw(r *sdl.Renderer, playerWhite bool) error {
+	x, y := b.coordinates(playerWhite)
 
 	rect := &sdl.Rect{X: x, Y: y, W: 20 * 3, H: 20 * 3}
 

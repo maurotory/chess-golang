@@ -12,8 +12,14 @@ type Pawn struct {
 	isWhite bool
 }
 
-func (p *Pawn) coordinates() (int32, int32) {
-	return (3 + p.p.X*22) * 3, (3 + p.p.Y*22) * 3
+func (p *Pawn) coordinates(playerWhite bool) (int32, int32) {
+	pos := backend.Position{p.p.X, p.p.Y}
+	if playerWhite {
+		return (3 + p.p.X*22) * 3, (3 + p.p.Y*22) * 3
+	} else {
+		pos = *pos.Simmetry()
+		return (3 + pos.X*22) * 3, (3 + pos.Y*22) * 3
+	}
 }
 
 func (p *Pawn) destroy() error {
@@ -33,10 +39,17 @@ func (p *Pawn) canMove(pos backend.Position) bool {
 	if pos.X > 7 || pos.Y > 7 || pos.X < 0 || pos.Y < 0 {
 		return false
 	}
-
-	if pos.Y == p.p.Y+2 || pos.Y == p.p.Y+1 {
-		if pos.X == p.p.X {
-			return true
+	if !p.isWhite {
+		if pos.Y == p.p.Y+2 || pos.Y == p.p.Y+1 {
+			if pos.X == p.p.X {
+				return true
+			}
+		}
+	} else {
+		if pos.Y == p.p.Y-2 || pos.Y == p.p.Y-1 {
+			if pos.X == p.p.X {
+				return true
+			}
 		}
 	}
 
@@ -47,8 +60,8 @@ func (p *Pawn) move(pos backend.Position) {
 	p.p = pos
 }
 
-func (p *Pawn) draw(r *sdl.Renderer) error {
-	x, y := p.coordinates()
+func (p *Pawn) draw(r *sdl.Renderer, playerWhite bool) error {
+	x, y := p.coordinates(playerWhite)
 
 	rect := &sdl.Rect{X: x, Y: y, W: 20 * 3, H: 20 * 3}
 

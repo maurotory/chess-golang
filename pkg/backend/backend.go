@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
@@ -20,8 +19,6 @@ type Position struct {
 func GetCell(X int32, Y int32) Position {
 	x := (X - 2*SCALE) / (22 * SCALE)
 	y := (Y - 2*SCALE) / (22 * SCALE)
-	fmt.Println(x)
-	fmt.Println(y)
 
 	return Position{x, y}
 }
@@ -52,7 +49,7 @@ type Move struct {
 }
 
 func (pos *Position) Simmetry() *Position {
-
-	return nil
-
+	X := -(pos.X - 7)
+	Y := -(pos.Y - 7)
+	return &Position{X: X, Y: Y}
 }

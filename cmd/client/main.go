@@ -34,7 +34,6 @@ func run() error {
 	}
 
 	playerID := uuid.New()
-	fmt.Printf("PlayerId is: %s\n", playerID)
 
 	conn, err := grpc.Dial("localhost:8082", grpc.WithInsecure())
 	if err != nil {
@@ -58,8 +57,8 @@ func run() error {
 	} else {
 		return fmt.Errorf("not a correct color response")
 	}
-	fmt.Printf("token: %s\n", resp.Token)
-	fmt.Printf("colour: %s\n", resp.Colour)
+
+	g.Render()
 
 	stream, err := client.Move(context.Background())
 	if err != nil {
@@ -78,7 +77,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("debuging")
 	select {
 	case <-done:
 		return nil
