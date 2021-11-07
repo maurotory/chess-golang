@@ -8,11 +8,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-func blockedPath(piece Piece, pos backend.Position, pieces []Piece) bool {
-
-	return false
-}
-
 type Piece interface {
 	coordinates(bool) (int32, int32)
 	destroy() error
@@ -29,73 +24,74 @@ func createPieces(r *sdl.Renderer) ([]Piece, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not load Bishop: %v", err)
 	}
-	bBishop1 := &Bishop{t: bBishopt, p: backend.Position{3, 0}, isWhite: false}
+	bBishop1 := &Bishop{t: bBishopt, p: backend.Position{X: 3, Y: 0}, isWhite: false}
 
 	bPawnt, err := img.LoadTexture(r, "imgs/black_pawn.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Pawn: %v", err)
 	}
-	bPawn1 := &Pawn{t: bPawnt, p: backend.Position{2, 1}, isWhite: false}
+
+	bPawn1 := &Pawn{t: bPawnt, p: backend.Position{X: 2, Y: 1}, isWhite: false}
 
 	brookt, err := img.LoadTexture(r, "imgs/black_rook.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Rook: %v", err)
 	}
-	bRook1 := &Rook{t: brookt, p: backend.Position{0, 0}, isWhite: false}
+	bRook1 := &Rook{t: brookt, p: backend.Position{X: 0, Y: 0}, isWhite: false}
 
 	bqueent, err := img.LoadTexture(r, "imgs/black_queen.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Queen: %v", err)
 	}
-	bQueen := &Queen{t: bqueent, p: backend.Position{5, 0}, isWhite: false}
+	bQueen := &Queen{t: bqueent, p: backend.Position{X: 5, Y: 0}, isWhite: false}
 
 	bkingt, err := img.LoadTexture(r, "imgs/black_king.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load King: %v", err)
 	}
-	bKing := &King{t: bkingt, p: backend.Position{6, 0}, isWhite: false}
+	bKing := &King{t: bkingt, p: backend.Position{X: 6, Y: 0}, isWhite: false}
 
 	bknightt, err := img.LoadTexture(r, "imgs/black_knight.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Knight: %v", err)
 	}
-	bKnight1 := &Knight{t: bknightt, p: backend.Position{6, 1}, isWhite: false}
+	bKnight1 := &Knight{t: bknightt, p: backend.Position{X: 6, Y: 1}, isWhite: false}
 
 	wBishopt, err := img.LoadTexture(r, "imgs/white_bishop.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Bishop: %v", err)
 	}
-	wBishop1 := &Bishop{t: wBishopt, p: backend.Position{3, 6}, isWhite: true}
+	wBishop1 := &Bishop{t: wBishopt, p: backend.Position{X: 3, Y: 6}, isWhite: true}
 
 	wPawnt, err := img.LoadTexture(r, "imgs/white_pawn.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Pawn: %v", err)
 	}
-	wPawn1 := &Pawn{t: wPawnt, p: backend.Position{2, 7}, isWhite: true}
+	wPawn1 := &Pawn{t: wPawnt, p: backend.Position{X: 2, Y: 7}, isWhite: true}
 
 	wrookt, err := img.LoadTexture(r, "imgs/white_rook.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Rook: %v", err)
 	}
-	wRook1 := &Rook{t: wrookt, p: backend.Position{0, 5}, isWhite: true}
+	wRook1 := &Rook{t: wrookt, p: backend.Position{X: 0, Y: 5}, isWhite: true}
 
 	wqueent, err := img.LoadTexture(r, "imgs/white_queen.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Queen: %v", err)
 	}
-	wQueen := &Queen{t: wqueent, p: backend.Position{5, 5}, isWhite: true}
+	wQueen := &Queen{t: wqueent, p: backend.Position{X: 5, Y: 5}, isWhite: true}
 
 	wkingt, err := img.LoadTexture(r, "imgs/white_king.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load King: %v", err)
 	}
-	wKing := &King{t: wkingt, p: backend.Position{5, 7}, isWhite: true}
+	wKing := &King{t: wkingt, p: backend.Position{X: 5, Y: 7}, isWhite: true}
 
 	wknightt, err := img.LoadTexture(r, "imgs/white_knight.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load Knight: %v", err)
 	}
-	wKnight1 := &Knight{t: wknightt, p: backend.Position{6, 7}, isWhite: true}
+	wKnight1 := &Knight{t: wknightt, p: backend.Position{X: 6, Y: 7}, isWhite: true}
 
 	pieces := []Piece{bBishop1, bPawn1, bRook1, bQueen, bKing, bKnight1, wKnight1, wBishop1, wPawn1, wRook1, wQueen, wKing}
 
@@ -103,44 +99,6 @@ func createPieces(r *sdl.Renderer) ([]Piece, error) {
 	// pieces = append(pieces, white...)
 
 	return pieces, nil
-}
-
-func makeSimmetry(pieces []Piece) []Piece {
-	var simmetryPieces []Piece
-	for _, piece := range pieces {
-		var newPiece Piece
-		newPiece = piece
-		pos := newPiece.getPosition()
-		if pos.X < 3 {
-			pos.X = 8 - pos.X
-		} else {
-			pos.X = 3 - (pos.X - 3)
-		}
-		if pos.Y < 3 {
-			pos.Y = 8 - pos.Y
-		} else {
-			pos.Y = 3 - (pos.Y - 3)
-		}
-
-		newPiece.move(pos)
-		simmetryPieces = append(simmetryPieces, newPiece)
-	}
-
-	return simmetryPieces
-}
-
-func createWhitePieces(pieces []Piece) []Piece {
-	var whitePieces []Piece
-
-	simmetryPieces := makeSimmetry(pieces)
-
-	for _, piece := range simmetryPieces {
-		piece.setColour(true)
-
-		whitePieces = append(whitePieces, piece)
-	}
-
-	return whitePieces
 }
 
 func canMove(pieces []Piece, piece Piece, pos backend.Position) bool {
@@ -153,12 +111,47 @@ func canMove(pieces []Piece, piece Piece, pos backend.Position) bool {
 	switch piece.(type) {
 	case *Knight:
 		if piece.canMove(pos) {
+			for _, p := range pieces {
+				if pos.Y == piece.getPosition().Y && pos.X == piece.getPosition().X && piece.isColourWhite() == !p.isColourWhite() {
+					return true
+				} else if pos.Y == piece.getPosition().Y && pos.X == piece.getPosition().X && piece.isColourWhite() == p.isColourWhite() {
+					return false
+				} else {
+					return true
+				}
+			}
+		}
+	case *Pawn:
+		if piece.canMove(pos) {
+			if piece.getPosition().X != pos.X {
+				for _, p := range pieces {
+					if pos == p.getPosition() && p.isColourWhite() != piece.isColourWhite() {
+						return true
+					}
+				}
+				return false
+			}
 			return true
 		}
+	case *King:
+		move := checkStraight(pieces, piece, pos)
+		if move && isCheck(pieces, piece, pos) {
+			return false
+		}
+		return move
 	default:
 		return checkStraight(pieces, piece, pos)
 	}
 
+	return false
+}
+
+func isCheck(pieces []Piece, piece Piece, pos backend.Position) bool {
+	for _, p := range pieces {
+		if p.isColourWhite() != piece.isColourWhite() && canMove(pieces, p, pos) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -170,6 +163,9 @@ func checkStraight(pieces []Piece, piece Piece, pos backend.Position) bool {
 			for i = -1; i >= dist; i-- {
 				for _, p := range pieces {
 					if p.getPosition().Y == piece.getPosition().Y+i && p.getPosition().X == piece.getPosition().X {
+						if pos.Y == piece.getPosition().Y+i && pos.X == piece.getPosition().X && piece.isColourWhite() == !p.isColourWhite() {
+							return true
+						}
 						return false
 					}
 				}
@@ -178,6 +174,9 @@ func checkStraight(pieces []Piece, piece Piece, pos backend.Position) bool {
 			for i = 1; i <= dist; i++ {
 				for _, p := range pieces {
 					if p.getPosition().Y == piece.getPosition().Y+i && p.getPosition().X == piece.getPosition().X {
+						if pos.Y == piece.getPosition().Y+i && pos.X == piece.getPosition().X && piece.isColourWhite() == !p.isColourWhite() {
+							return true
+						}
 						return false
 					}
 				}
@@ -190,6 +189,9 @@ func checkStraight(pieces []Piece, piece Piece, pos backend.Position) bool {
 			for i = -1; i >= dist; i-- {
 				for _, p := range pieces {
 					if p.getPosition().X == piece.getPosition().X+i && p.getPosition().Y == piece.getPosition().Y {
+						if pos.Y == piece.getPosition().Y && pos.X == piece.getPosition().X+i && piece.isColourWhite() == !p.isColourWhite() {
+							return true
+						}
 						return false
 					}
 				}
@@ -198,6 +200,9 @@ func checkStraight(pieces []Piece, piece Piece, pos backend.Position) bool {
 			for i = 1; i <= dist; i++ {
 				for _, p := range pieces {
 					if p.getPosition().X == piece.getPosition().X+i && p.getPosition().Y == piece.getPosition().Y {
+						if pos.Y == piece.getPosition().Y && pos.X == piece.getPosition().X+i && piece.isColourWhite() == !p.isColourWhite() {
+							return true
+						}
 						return false
 					}
 				}
@@ -220,6 +225,9 @@ func checkDiagonal(pieces []Piece, piece Piece, pos backend.Position) bool {
 		for i = 1; i <= dist; i++ {
 			for _, p := range pieces {
 				if p.getPosition().X == piece.getPosition().X+i && p.getPosition().Y == piece.getPosition().Y+i {
+					if pos.Y == piece.getPosition().Y+i && pos.X == piece.getPosition().X+i && piece.isColourWhite() == !p.isColourWhite() {
+						return true
+					}
 					return false
 				}
 			}
@@ -228,6 +236,9 @@ func checkDiagonal(pieces []Piece, piece Piece, pos backend.Position) bool {
 		for i = 1; i <= dist; i++ {
 			for _, p := range pieces {
 				if p.getPosition().X == piece.getPosition().X+i && p.getPosition().Y == piece.getPosition().Y-i {
+					if pos.Y == piece.getPosition().Y-i && pos.X == piece.getPosition().X+i && piece.isColourWhite() == !p.isColourWhite() {
+						return true
+					}
 					return false
 				}
 			}
@@ -236,6 +247,9 @@ func checkDiagonal(pieces []Piece, piece Piece, pos backend.Position) bool {
 		for i = 1; i <= dist; i++ {
 			for _, p := range pieces {
 				if p.getPosition().X == piece.getPosition().X-i && p.getPosition().Y == piece.getPosition().Y+i {
+					if pos.Y == piece.getPosition().Y+i && pos.X == piece.getPosition().X-i && piece.isColourWhite() == !p.isColourWhite() {
+						return true
+					}
 					return false
 				}
 			}
@@ -244,6 +258,9 @@ func checkDiagonal(pieces []Piece, piece Piece, pos backend.Position) bool {
 		for i = 1; i <= dist; i++ {
 			for _, p := range pieces {
 				if p.getPosition().X == piece.getPosition().X-i && p.getPosition().Y == piece.getPosition().Y-i {
+					if pos.Y == piece.getPosition().Y-i && pos.X == piece.getPosition().X-i && piece.isColourWhite() == !p.isColourWhite() {
+						return true
+					}
 					return false
 				}
 			}

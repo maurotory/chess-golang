@@ -78,6 +78,11 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 				board.whiteTurn = resp.WhiteTurn
 				for _, piece := range board.pieces {
 					if piece.getPosition() == initPos {
+						for i, piece2 := range board.pieces {
+							if piece2.getPosition() == finalPos {
+								board.pieces = append(board.pieces[:i], board.pieces[i+1:]...)
+							}
+						}
 						piece.move(finalPos)
 						board.Render()
 					}
@@ -109,10 +114,11 @@ func (board *Board) handleEvents(e sdl.Event, done chan int, stream pb.SendMoveR
 			if board.selectedPiece == nil {
 				for _, piece := range board.pieces {
 					if piece.getPosition() == pos && board.PlayerWhite == piece.isColourWhite() {
-						fmt.Printf("The piece selected is: %v\n", piece)
+						log.Printf("The piece selected is: %v\n", piece)
 						board.selectedPiece = piece
 					}
 				}
+
 			} else {
 				if canMove(board.pieces, board.selectedPiece, pos) {
 					// if board.selectedPiece.canMove(pos) {
@@ -157,4 +163,18 @@ func (board *Board) FinishBoard() error {
 		}
 	}
 	return nil
+}
+
+func (board *Board) IsCheck() bool {
+	for _, p := range board.pieces {
+		if p.isColourWhite() == board.whiteTurn {
+			if _, ok := p.(*King); ok {
+				if isCheck(board.pieces, p, backend.Position{X: p.getPosition().X, Y: p.getPosition().Y}) {
+					log.Println("It is check to the king")
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

@@ -14,7 +14,7 @@ type Queen struct {
 }
 
 func (q *Queen) coordinates(playerWhite bool) (int32, int32) {
-	pos := backend.Position{q.p.X, q.p.Y}
+	pos := backend.Position{X: q.p.X, Y: q.p.Y}
 	if playerWhite {
 		return (3 + q.p.X*22) * 3, (3 + q.p.Y*22) * 3
 	} else {

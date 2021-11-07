@@ -14,7 +14,7 @@ type Rook struct {
 }
 
 func (r *Rook) coordinates(playerWhite bool) (int32, int32) {
-	pos := backend.Position{r.p.X, r.p.Y}
+	pos := backend.Position{X: r.p.X, Y: r.p.Y}
 	if playerWhite {
 		return (3 + r.p.X*22) * 3, (3 + r.p.Y*22) * 3
 	} else {

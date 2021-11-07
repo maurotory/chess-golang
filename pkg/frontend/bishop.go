@@ -14,7 +14,7 @@ type Bishop struct {
 }
 
 func (b *Bishop) coordinates(playerWhite bool) (int32, int32) {
-	pos := backend.Position{b.p.X, b.p.Y}
+	pos := backend.Position{X: b.p.X, Y: b.p.Y}
 	if playerWhite {
 		return (3 + b.p.X*22) * 3, (3 + b.p.Y*22) * 3
 	} else {
@@ -36,7 +36,6 @@ func (b *Bishop) destroy() error {
 }
 
 func (b *Bishop) canMove(pos backend.Position) bool {
-
 	if pos.X > 7 || pos.Y > 7 || pos.X < 0 || pos.Y < 0 {
 		return false
 	}
@@ -46,10 +45,7 @@ func (b *Bishop) canMove(pos backend.Position) bool {
 
 	diff := math.Abs(float64((b.p.X - pos.X)))
 
-	if diff == math.Abs(float64((b.p.Y - pos.Y))) {
-		return true
-	}
-	return false
+	return diff == math.Abs(float64((b.p.Y - pos.Y)))
 }
 
 func (b *Bishop) move(pos backend.Position) {

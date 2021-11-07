@@ -47,9 +47,9 @@ func (board *Board) Render() error {
 
 		for i := 0; i < 8; i++ {
 			for j := 0; j < 8; j++ {
-				if canMove(board.pieces, board.selectedPiece, backend.Position{int32(i), int32(j)}) {
+				if canMove(board.pieces, board.selectedPiece, backend.Position{X: int32(i), Y: int32(j)}) {
 					// if board.selectedPiece.canMove(backend.Position{int32(i), int32(j)}) {
-					pos := backend.Position{int32(i), int32(j)}
+					pos := backend.Position{X: int32(i), Y: int32(j)}
 					if !board.whiteTurn {
 						pos = *pos.Simmetry()
 					}

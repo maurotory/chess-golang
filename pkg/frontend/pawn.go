@@ -13,7 +13,7 @@ type Pawn struct {
 }
 
 func (p *Pawn) coordinates(playerWhite bool) (int32, int32) {
-	pos := backend.Position{p.p.X, p.p.Y}
+	pos := backend.Position{X: p.p.X, Y: p.p.Y}
 	if playerWhite {
 		return (3 + p.p.X*22) * 3, (3 + p.p.Y*22) * 3
 	} else {
@@ -40,14 +40,22 @@ func (p *Pawn) canMove(pos backend.Position) bool {
 		return false
 	}
 	if !p.isWhite {
-		if pos.Y == p.p.Y+2 || pos.Y == p.p.Y+1 {
-			if pos.X == p.p.X {
+		if pos.Y == p.p.Y+2 && p.p.Y == 1 {
+			if pos.X == p.p.X || pos.X == p.p.X+1 || pos.X == p.p.X-1 {
+				return true
+			}
+		} else if pos.Y == p.p.Y+1 {
+			if pos.X == p.p.X || pos.X == p.p.X+1 || pos.X == p.p.X-1 {
 				return true
 			}
 		}
 	} else {
-		if pos.Y == p.p.Y-2 || pos.Y == p.p.Y-1 {
-			if pos.X == p.p.X {
+		if pos.Y == p.p.Y-2 && p.p.Y == 6 {
+			if pos.X == p.p.X || pos.X == p.p.X+1 || pos.X == p.p.X-1 {
+				return true
+			}
+		} else if pos.Y == p.p.Y-1 {
+			if pos.X == p.p.X || pos.X == p.p.X+1 || pos.X == p.p.X-1 {
 				return true
 			}
 		}

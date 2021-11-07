@@ -13,7 +13,7 @@ type Knight struct {
 }
 
 func (k *Knight) coordinates(playerWhite bool) (int32, int32) {
-	pos := backend.Position{k.p.X, k.p.Y}
+	pos := backend.Position{X: k.p.X, Y: k.p.Y}
 	if playerWhite {
 		return (3 + k.p.X*22) * 3, (3 + k.p.Y*22) * 3
 	} else {
