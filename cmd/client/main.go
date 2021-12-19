@@ -33,8 +33,6 @@ func run() error {
 		return fmt.Errorf("could not create Game: %v", err)
 	}
 
-	playerID := uuid.New()
-
 	conn, err := grpc.Dial("localhost:8082", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -45,11 +43,15 @@ func run() error {
 	client := pb.NewSendMoveRequestClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	resp, err := client.Connect(ctx, &pb.ConnectRequest{Id: playerID.String(), Name: "Mauri", Password: "Password"})
+	resp, err := client.Connect(ctx, &pb.ConnectRequest{Name: "Mauri", Password: "Password"})
 	if err != nil {
 		log.Fatalf("could not receive the response: %v", err)
 	}
-	g.PlayerID = playerID
+	PlayerID, err := uuid.Parse(resp.Token)
+	if err != nil {
+		return err
+	}
+	g.PlayerID = PlayerID
 	if resp.Colour == "white" {
 		g.PlayerWhite = true
 	} else if resp.Colour == "black" {
@@ -79,6 +81,7 @@ func run() error {
 	}
 	select {
 	case <-done:
+		log.Println("Stream closed with the server")
 		return nil
 	}
 

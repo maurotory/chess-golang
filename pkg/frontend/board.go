@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"time"
 
 	//"time"
@@ -84,6 +85,13 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 							}
 						}
 						piece.move(finalPos)
+						if board.IsCheck() {
+							log.Println("It is check!")
+							if board.IsCheckMate() {
+								log.Println("GAME OVER, YOU LOSE")
+								os.Exit(0)
+							}
+						}
 						board.Render()
 					}
 				}
@@ -114,8 +122,13 @@ func (board *Board) handleEvents(e sdl.Event, done chan int, stream pb.SendMoveR
 			if board.selectedPiece == nil {
 				for _, piece := range board.pieces {
 					if piece.getPosition() == pos && board.PlayerWhite == piece.isColourWhite() {
-						log.Printf("The piece selected is: %v\n", piece)
-						board.selectedPiece = piece
+						_, ok := piece.(*King)
+						if board.IsCheck() && !ok {
+							fmt.Println("Can not select this piece, is check!")
+						} else {
+							log.Printf("The piece selected is: %v\n", piece)
+							board.selectedPiece = piece
+						}
 					}
 				}
 
@@ -177,4 +190,42 @@ func (board *Board) IsCheck() bool {
 		}
 	}
 	return false
+}
+
+func (board *Board) IsCheckMate() bool {
+	copyPieces := make([]Piece, len(board.pieces))
+
+	copy(copyPieces, board.pieces)
+	for xx, piece := range copyPieces {
+		fmt.Println(xx)
+		if piece.isColourWhite() == board.whiteTurn {
+			var x int32
+			var y int32
+			for x = 0; x < 8; x++ {
+				for y = 0; y < 8; y++ {
+					pos := backend.Position{X: x, Y: y}
+					if canMove(copyPieces, piece, pos) {
+						for i, p := range copyPieces {
+							if p.getPosition() == pos {
+								copyPieces = append(copyPieces[:i], copyPieces[i+1:]...)
+							}
+						}
+						piece.move(pos)
+						for _, p := range copyPieces {
+							if p.isColourWhite() == board.whiteTurn {
+								if _, ok := p.(*King); ok {
+									if !isCheck(copyPieces, p, backend.Position{X: p.getPosition().X, Y: p.getPosition().Y}) {
+										return false
+									}
+								}
+							}
+						}
+						copyPieces = nil
+						copy(copyPieces, board.pieces)
+					}
+				}
+			}
+		}
+	}
+	return true
 }

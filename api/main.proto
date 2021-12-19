@@ -21,7 +21,6 @@ message MoveAnswer {
 }
 
 message ConnectRequest {
-    string id = 1;
     string name = 2;
     string password = 3;
 }

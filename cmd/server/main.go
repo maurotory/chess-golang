@@ -38,50 +38,49 @@ type server struct {
 }
 
 func (s *server) Connect(ctx context.Context, msg *pb.ConnectRequest) (*pb.ConnectResponse, error) {
-	if len(s.Games) == 0 {
-		id, err := uuid.Parse(msg.Id)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse the uuid")
+	playerID := uuid.New()
+	for i, g := range s.Games {
+		if g.BlackPlayer == nil {
+			ch := make(chan backend.Move)
+			player := backend.Player{
+				Name:          msg.Name,
+				ChangeChannel: ch,
+				Id:            playerID,
+				IsWhite:       false,
+			}
+			s.Games[i].BlackPlayer = &player
+			resp := &pb.ConnectResponse{Token: playerID.String(), Colour: "black"}
+			return resp, nil
 		}
-		ch := make(chan backend.Move)
-		player := backend.Player{
-			Name:          "Player1",
-			ChangeChannel: ch,
-			Id:            id,
-			IsWhite:       true,
-		}
-		newGame := backend.Game{WhitePlayer: &player, WhiteTurn: true}
-
-		s.Games = append(s.Games, newGame)
-		resp := &pb.ConnectResponse{Token: "token1", Colour: "white"}
-		return resp, nil
-	} else if len(s.Games) == 1 {
-		id, err := uuid.Parse(msg.Id)
-		if err != nil {
-			return nil, fmt.Errorf("could not parse the uuid")
-		}
-		ch := make(chan backend.Move)
-		player := backend.Player{
-			Name:          "Player2",
-			ChangeChannel: ch,
-			Id:            id,
-			IsWhite:       false,
-		}
-		s.Games[0].BlackPlayer = &player
-		resp := &pb.ConnectResponse{Token: "token2", Colour: "black"}
-		return resp, nil
 	}
-	return nil, fmt.Errorf("there are already 2 players playing")
+	ch := make(chan backend.Move)
+	player := backend.Player{
+		Name:          msg.Name,
+		ChangeChannel: ch,
+		Id:            playerID,
+		IsWhite:       true,
+	}
+	newGame := backend.Game{WhitePlayer: &player, WhiteTurn: true}
+
+	s.Games = append(s.Games, newGame)
+	resp := &pb.ConnectResponse{Token: playerID.String(), Colour: "white"}
+	return resp, nil
 }
 
 func (s *server) ListenEvents(srv pb.SendMoveRequest_MoveServer, id uuid.UUID) error {
 	var ch chan backend.Move
-	if s.Games[0].WhitePlayer.Id == id {
-		ch = s.Games[0].WhitePlayer.ChangeChannel
-	} else if s.Games[0].BlackPlayer.Id == id {
-		ch = s.Games[0].BlackPlayer.ChangeChannel
-	} else {
-		return fmt.Errorf("id not found")
+	var gameID int
+	//There is a nil panic error here in case the uuid does not match with any player FIX THIS
+	for i, game := range s.Games {
+		if game.WhitePlayer.Id == id {
+			ch = game.WhitePlayer.ChangeChannel
+			gameID = i
+		} else {
+			if game.BlackPlayer.Id == id {
+				ch = game.BlackPlayer.ChangeChannel
+				gameID = i
+			}
+		}
 	}
 	for {
 		select {
@@ -91,7 +90,7 @@ func (s *server) ListenEvents(srv pb.SendMoveRequest_MoveServer, id uuid.UUID) e
 				YInitPos:  int32(move.InitialY),
 				XFinalPos: int32(move.FinalX),
 				YFinalPos: int32(move.FinalY),
-				WhiteTurn: s.Games[0].WhiteTurn,
+				WhiteTurn: s.Games[gameID].WhiteTurn,
 			}
 			err := srv.Send(&resp)
 			if err != nil {
@@ -117,6 +116,20 @@ func (s *server) Move(srv pb.SendMoveRequest_MoveServer) error {
 		if err != nil {
 			return err
 		}
+		var gameID int
+		for i, game := range s.Games {
+			id, err := uuid.Parse(req.Id)
+			if err != nil {
+				return err
+			}
+			if game.WhitePlayer.Id == id {
+				gameID = i
+			} else {
+				if game.BlackPlayer.Id == id {
+					gameID = i
+				}
+			}
+		}
 		if started {
 			move := backend.Move{
 				InitialX: int(req.XInitPos),
@@ -124,9 +137,9 @@ func (s *server) Move(srv pb.SendMoveRequest_MoveServer) error {
 				FinalX:   int(req.XFinalPos),
 				FinalY:   int(req.YFinalPos),
 			}
-			s.Games[0].WhiteTurn = !s.Games[0].WhiteTurn
-			s.Games[0].WhitePlayer.ChangeChannel <- move
-			s.Games[0].BlackPlayer.ChangeChannel <- move
+			s.Games[gameID].WhiteTurn = !s.Games[gameID].WhiteTurn
+			s.Games[gameID].WhitePlayer.ChangeChannel <- move
+			s.Games[gameID].BlackPlayer.ChangeChannel <- move
 		} else {
 			uid, err := uuid.Parse(req.Id)
 			if err != nil {
