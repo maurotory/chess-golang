@@ -2,6 +2,7 @@ package frontend
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/maurotory/chess-golang/pkg/backend"
 	img "github.com/veandco/go-sdl2/img"
@@ -268,4 +269,15 @@ func checkDiagonal(pieces []Piece, piece Piece, pos backend.Position) bool {
 	}
 
 	return true
+}
+
+func checkAfterMove(pieces []Piece, piece Piece, pos backend.Position) bool {
+	copyPieces := make([]Piece, len(pieces))
+	copy(copyPieces, pieces)
+	if isCheck(pieces, piece, backend.Position{X: piece.getPosition().X, Y: piece.getPosition().Y}) {
+		log.Println("It is check to the king")
+		return true
+	}
+
+	return false
 }

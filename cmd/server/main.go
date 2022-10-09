@@ -138,8 +138,11 @@ func (s *server) Move(srv pb.SendMoveRequest_MoveServer) error {
 				FinalY:   int(req.YFinalPos),
 			}
 			s.Games[gameID].WhiteTurn = !s.Games[gameID].WhiteTurn
+			fmt.Println("here")
 			s.Games[gameID].WhitePlayer.ChangeChannel <- move
+			fmt.Println("here")
 			s.Games[gameID].BlackPlayer.ChangeChannel <- move
+			fmt.Println("here")
 		} else {
 			uid, err := uuid.Parse(req.Id)
 			if err != nil {

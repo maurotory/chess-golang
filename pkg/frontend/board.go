@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"time"
 
 	//"time"
@@ -87,10 +86,10 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 						piece.move(finalPos)
 						if board.IsCheck() {
 							log.Println("It is check!")
-							if board.IsCheckMate() {
-								log.Println("GAME OVER, YOU LOSE")
-								os.Exit(0)
-							}
+							// if board.IsCheckMate() {
+							// log.Println("GAME OVER, YOU LOSE")
+							// os.Exit(0)
+							// }
 						}
 						board.Render()
 					}
