@@ -408,6 +408,8 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/veandco/go-sdl2 v0.4.10 h1:8QoD2bhWl7SbQDflIAUYWfl9Vq+mT8/boJFAUzAScgY=
 github.com/veandco/go-sdl2 v0.4.10/go.mod h1:OROqMhHD43nT4/i9crJukyVecjPNYYuCofep6SNiAjY=
+github.com/veandco/go-sdl2 v0.4.25 h1:J5ac3KKOccp/0xGJA1PaNYKPUcZm19IxhDGs8lJofPI=
+github.com/veandco/go-sdl2 v0.4.25/go.mod h1:OROqMhHD43nT4/i9crJukyVecjPNYYuCofep6SNiAjY=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
