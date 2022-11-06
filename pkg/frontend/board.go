@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"time"
 
 	//"time"
@@ -32,17 +33,24 @@ func InitBoard() (*Board, error) {
 		return nil, fmt.Errorf("could not initialize SDL: %v", err)
 	}
 
-	w, r, err := sdl.CreateWindowAndRenderer(180*3, 180*3, sdl.WINDOW_SHOWN)
+	w, r, err := sdl.CreateWindowAndRenderer(180*3, 180*3+100, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return nil, fmt.Errorf("could not create window: %v", err)
 	}
+
+	surface, err := w.GetSurface()
+	if err != nil {
+		panic(err)
+	}
+	surface.FillRect(nil, 0)
 
 	bg, err := img.LoadTexture(r, "imgs/board.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load background: %v", err)
 	}
 
-	if err := r.Copy(bg, nil, nil); err != nil {
+	rect := &sdl.Rect{X: 0, Y: 0, W: 180 * 3, H: 180 * 3}
+	if err := r.Copy(bg, nil, rect); err != nil {
 		return nil, fmt.Errorf("could not copy background: %v", err)
 	}
 
@@ -86,10 +94,10 @@ func (board *Board) RunBoard(stream pb.SendMoveRequest_MoveClient) (chan int, er
 						piece.move(finalPos)
 						if board.IsCheck() {
 							log.Println("It is check!")
-							// if board.IsCheckMate() {
-							// log.Println("GAME OVER, YOU LOSE")
-							// os.Exit(0)
-							// }
+							if board.IsCheckMate() {
+								log.Println("GAME OVER, YOU LOSE")
+								os.Exit(0)
+							}
 						}
 						board.Render()
 					}
@@ -118,35 +126,44 @@ func (board *Board) handleEvents(e sdl.Event, done chan int, stream pb.SendMoveR
 				pos = *pos.Simmetry()
 			}
 
+			// Check if the square of the board contains a piece or not, if it contains a piece, save it as selectedPiece
 			if board.selectedPiece == nil {
 				for _, piece := range board.pieces {
 					if piece.getPosition() == pos && board.PlayerWhite == piece.isColourWhite() {
-						_, ok := piece.(*King)
-						if board.IsCheck() && !ok {
-							fmt.Println("Can not select this piece, is check!")
-						} else {
-							log.Printf("The piece selected is: %v\n", piece)
-							board.selectedPiece = piece
-						}
+						log.Printf("The piece selected is: %v\n", piece)
+						board.selectedPiece = piece
+						//code belwo is wrong, it is possible to select pieces even if is check
+						// _, ok := piece.(*King)
+						// if board.IsCheck() && !ok {
+						// 	fmt.Println("Can not select this piece, is check!")
+						// } else {
+						// 	log.Printf("The piece selected is: %v\n", piece)
+						// 	board.selectedPiece = piece
+						// }
 					}
 				}
-
+				// If there is a piece selected, check if the piece can moved there
 			} else {
 				if canMove(board.pieces, board.selectedPiece, pos) {
+					// If can move there, check if with the new board position it is check or not
 					// if board.selectedPiece.canMove(pos) {
-					for _, piece := range board.pieces {
-						if piece == board.selectedPiece {
-							//piece.move(pos)
-							playerID := board.PlayerID.String()
-							req := pb.MoveRequest{
-								XInitPos:  board.selectedPiece.getPosition().X,
-								YInitPos:  board.selectedPiece.getPosition().Y,
-								XFinalPos: pos.X,
-								YFinalPos: pos.Y,
-								Id:        playerID,
-							}
-							stream.Send(&req)
+					if !board.NewPositionIsCheck(board.selectedPiece, pos) {
+						playerID := board.PlayerID.String()
+						req := pb.MoveRequest{
+							XInitPos:  board.selectedPiece.getPosition().X,
+							YInitPos:  board.selectedPiece.getPosition().Y,
+							XFinalPos: pos.X,
+							YFinalPos: pos.Y,
+							Id:        playerID,
 						}
+						stream.Send(&req)
+						// for _, piece := range board.pieces {
+						// 	if piece == board.selectedPiece {
+						// 		//piece.move(pos)
+						// 	}
+						// }
+					} else {
+						log.Println("It is check, this is not a valid position")
 					}
 					board.selectedPiece = nil
 
@@ -191,11 +208,37 @@ func (board *Board) IsCheck() bool {
 	return false
 }
 
-func (board *Board) IsCheckMate() bool {
-	copyPieces := make([]Piece, len(board.pieces))
+func (board *Board) NewPositionIsCheck(piece Piece, pos backend.Position) bool {
+	initalPosition := piece.getPosition()
+	var removedPiece Piece
+	var i int
 
-	copy(copyPieces, board.pieces)
-	for xx, piece := range copyPieces {
+	//Move the piece to the new position and remove the piece there if there is any
+	for i, piece := range board.pieces {
+		if piece.getPosition() == pos {
+			removedPiece = piece
+			board.pieces = append(board.pieces[:i], board.pieces[i+1:]...)
+		}
+	}
+	piece.move(pos)
+
+	// Check wheter with the new state it is check or not
+	result := board.IsCheck()
+
+	// Go back to the initial state
+	piece.move(initalPosition)
+	// If a piece is removed bring it back
+	if removedPiece != nil {
+		board.pieces = append(board.pieces[:i+1], board.pieces[i:]...)
+		board.pieces[i] = removedPiece
+
+	}
+
+	return result
+}
+
+func (board *Board) IsCheckMate() bool {
+	for xx, piece := range board.pieces {
 		fmt.Println(xx)
 		if piece.isColourWhite() == board.whiteTurn {
 			var x int32
@@ -203,24 +246,10 @@ func (board *Board) IsCheckMate() bool {
 			for x = 0; x < 8; x++ {
 				for y = 0; y < 8; y++ {
 					pos := backend.Position{X: x, Y: y}
-					if canMove(copyPieces, piece, pos) {
-						for i, p := range copyPieces {
-							if p.getPosition() == pos {
-								copyPieces = append(copyPieces[:i], copyPieces[i+1:]...)
-							}
+					if canMove(board.pieces, piece, pos) {
+						if !board.NewPositionIsCheck(piece, pos) {
+							return false
 						}
-						piece.move(pos)
-						for _, p := range copyPieces {
-							if p.isColourWhite() == board.whiteTurn {
-								if _, ok := p.(*King); ok {
-									if !isCheck(copyPieces, p, backend.Position{X: p.getPosition().X, Y: p.getPosition().Y}) {
-										return false
-									}
-								}
-							}
-						}
-						copyPieces = nil
-						copy(copyPieces, board.pieces)
 					}
 				}
 			}

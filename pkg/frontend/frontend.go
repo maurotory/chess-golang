@@ -6,10 +6,14 @@ import (
 	"github.com/maurotory/chess-golang/pkg/backend"
 	img "github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 func (board *Board) Render() error {
 	board.renderer.Clear()
+	if err := ttf.Init(); err != nil {
+		return fmt.Errorf("Could not initialize TTF: %v", err)
+	}
 
 	bg, err := img.LoadTexture(board.renderer, "imgs/board.png")
 	if err != nil {
@@ -17,7 +21,8 @@ func (board *Board) Render() error {
 	}
 	defer bg.Destroy()
 
-	if err := board.renderer.Copy(board.background, nil, nil); err != nil {
+	rect := &sdl.Rect{X: 0, Y: 0, W: 180 * 3, H: 180 * 3}
+	if err := board.renderer.Copy(board.background, nil, rect); err != nil {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
 
@@ -27,6 +32,7 @@ func (board *Board) Render() error {
 		x, y := piece.coordinates(board.PlayerWhite)
 
 		rect := &sdl.Rect{X: x - 3, Y: y - 3, W: 22 * 3, H: 22 * 3}
+		// img
 
 		sq, err := img.LoadTexture(board.renderer, "imgs/square_green.png")
 		if err != nil {
@@ -74,7 +80,36 @@ func (board *Board) Render() error {
 			}
 		}
 	}
+	drawMessage(board.renderer)
 	board.renderer.Present()
 
+	return nil
+}
+
+func drawMessage(r *sdl.Renderer) error {
+	f, err := ttf.OpenFont("fonts/Roboto-Bold.ttf", 50)
+	if err != nil {
+		return fmt.Errorf("Could not laod font: %v", err)
+	}
+	defer f.Close()
+
+	c := sdl.Color{R: 255, G: 0, B: 0, A: 255}
+	s, err := f.RenderUTF8Solid("Hello custom text", c)
+	if err != nil {
+		return fmt.Errorf("Could not render title: %v", err)
+	}
+	defer s.Free()
+
+	t, err := r.CreateTextureFromSurface(s)
+	if err != nil {
+		return fmt.Errorf("Could not create texture: %v", err)
+	}
+	defer t.Destroy()
+
+	rect := &sdl.Rect{X: 10, Y: 180*3 + 5, W: 200, H: 50}
+	// rect2 := &sdl.Rect{X: 5, Y: 5, W: 100, H: 50}
+	if err := r.Copy(t, nil, rect); err != nil {
+		return fmt.Errorf("Could not copy texture: %v", err)
+	}
 	return nil
 }
